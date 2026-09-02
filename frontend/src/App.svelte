@@ -18,7 +18,7 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js'
 	import NewsCard from '$lib/components/NewsCard.svelte'
 	import { digestFilename, periodFromProvision, provisionDateFromUnknown, todayIso } from '$lib/dates'
-	import { emptyNews, parseNewsType, sampleItems, type NewsItem } from '$lib/types'
+	import { emptyNews, importedText, parseNewsType, sampleItems, type NewsItem } from '$lib/types'
 
 	const initialItems = [emptyNews(), emptyNews(), emptyNews(), emptyNews()]
 	let items = $state<NewsItem[]>(initialItems)
@@ -69,22 +69,18 @@
 			const parsed = parseImported(jsonText)
 			const next = (parsed.items as Array<Partial<NewsItem>>).map((item) =>
 				emptyNews({
-					name: String(item.name ?? ''),
-					short_description: String(item.short_description ?? ''),
+					name: importedText(item.name),
+					short_description: importedText(item.short_description),
 					type: parseNewsType(item.type),
 					applicability: String(item.applicability ?? '3'),
 					maturity: String(item.maturity ?? '3'),
 					implementation: String(item.implementation ?? '3'),
 					transformation: String(item.transformation ?? '3'),
-					link: String(item.link ?? ''),
-					application_scope: Array.isArray(item.application_scope)
-						? item.application_scope.join('\n')
-						: String(item.application_scope ?? ''),
-					similar_services: Array.isArray(item.similar_services)
-						? item.similar_services.join('\n')
-						: String(item.similar_services ?? ''),
-					description: String(item.description ?? ''),
-					image_url: String(item.image_url ?? ''),
+					link: importedText(item.link),
+					application_scope: importedText(item.application_scope),
+					similar_services: importedText(item.similar_services),
+					description: importedText(item.description),
+					image_url: importedText(item.image_url),
 					image_id: String(item.image_id ?? ''),
 				}),
 			)
@@ -256,7 +252,11 @@
 				Массив новостей или объект с полем items. Можно вставить один объект новости.
 			</Dialog.Description>
 		</Dialog.Header>
-		<Textarea bind:value={jsonText} rows={16} class="font-mono text-xs" />
+		<Textarea
+			bind:value={jsonText}
+			rows={16}
+			class="field-sizing-fixed max-h-[min(24rem,50dvh)] overflow-y-auto font-mono text-xs"
+		/>
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => (jsonOpen = false)}>Отмена</Button>
 			<Button onclick={applyJson}>Загрузить</Button>

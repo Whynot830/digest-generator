@@ -42,10 +42,8 @@ curl -X POST http://localhost:3001/api/generate \
       "link": "https://example.com",
       "application_scope": "Пункт 1\nПункт 2",
       "similar_services": "Аналог A\nАналог B",
-      "description": "Полное описание",
-      "image_url": "https://example.com/image.png",
-      "practical_value": "Плюс 1",
-      "limitations": "Минус 1"
+      "description": "Первый абзац.\\n\\nВторой абзац.",
+      "image_url": "https://example.com/image.png"
     }
   ]
 }

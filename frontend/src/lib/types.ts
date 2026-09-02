@@ -5,6 +5,18 @@ export function parseNewsType(value: unknown): NewsType {
   return value === 'Методы' ? 'Методы' : 'Инструменты'
 }
 
+export function importedText(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.map((item) => importedText(item)).filter(Boolean).join('\n')
+  }
+  if (value == null) return ''
+  let text = String(value).replaceAll('\r\n', '\n').replaceAll('\r', '\n')
+  if (!text.includes('\n') && text.includes('\\n')) {
+    text = text.replaceAll('\\r\\n', '\n').replaceAll('\\n', '\n')
+  }
+  return text
+}
+
 export type NewsItem = {
   id: string
   name: string

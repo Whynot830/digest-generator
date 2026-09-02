@@ -14,8 +14,6 @@ export type NewsItemInput = {
   image_id?: string
   provision_date?: string
   committee_date?: string
-  practical_value?: string | string[]
-  limitations?: string | string[]
   extra_links?: string[]
 }
 

@@ -67,36 +67,29 @@ export function formatScore(value: number) {
   return String(rounded);
 }
 
+function unescapeMarkup(text: string) {
+  let value = text.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  if (!value.includes("\n") && value.includes("\\n")) {
+    value = value.replaceAll("\\r\\n", "\n").replaceAll("\\n", "\n");
+  }
+  return value;
+}
+
 function toList(value: string | string[] | undefined) {
   if (!value) return [];
   if (Array.isArray(value))
     return value.map((item) => item.trim()).filter(Boolean);
-  return value
+  return unescapeMarkup(value)
     .split(/\n|;/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
 function toParagraphs(text: string) {
-  const explicit = text
+  return unescapeMarkup(text)
     .split(/\n+/)
     .map((item) => item.trim())
     .filter(Boolean);
-  if (explicit.length > 1) return explicit;
-  const one = text.trim();
-  if (one.length < 720) return one ? [one] : [];
-  const sentences = one.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g) ?? [one];
-  const paras: string[] = [];
-  for (let i = 0; i < sentences.length; i += 2) {
-    paras.push(
-      sentences
-        .slice(i, i + 2)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim()
-    );
-  }
-  return paras.filter(Boolean);
 }
 
 function normalizeDashes(text: string) {
@@ -408,22 +401,6 @@ function details(items: NewsItemInput[], images: Array<ResolvedImage | null>) {
     children.push(heading3("Описание"));
     for (const para of toParagraphs(item.description))
       children.push(bodyPara(para));
-
-    const practical = toList(item.practical_value);
-    if (practical.length) {
-      children.push(
-        heading3("Практическая ценность"),
-        ...practical.map(bullet)
-      );
-    }
-
-    const limits = toList(item.limitations);
-    if (limits.length) {
-      children.push(
-        heading3("Ограничения и использование"),
-        ...limits.map(bullet)
-      );
-    }
 
     children.push(emptyPara(), ...itemLinks(item), emptyPara());
   });
