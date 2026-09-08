@@ -4,7 +4,7 @@ import express from 'express'
 import multer from 'multer'
 import { generateDigestDocx } from './generateDocx'
 import { resolveItemImage } from './images'
-import { digestFilename, resolveCoverDates } from './dates'
+import { digestAuthorName, digestFilename, resolveCoverDates } from './dates'
 import { createImageStore } from './store'
 import type { GeneratePayload, NewsItemInput } from './types'
 
@@ -29,6 +29,10 @@ function normalizePayload(body: unknown): GeneratePayload {
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
+})
+
+app.get('/api/ut-config', (_req, res) => {
+  res.json({ user_full_name: digestAuthorName() })
 })
 
 app.get('/api/images', async (_req, res) => {

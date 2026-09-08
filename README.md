@@ -66,6 +66,37 @@ curl -X POST http://localhost:3001/api/generate \
 - **ИТОГО** — среднее четырёх оценок
 - картинка: URL (`image_url`) или загрузка `POST /api/images` и поле `image_id`
 
+## Запросы для УТ
+
+В интерфейсе нажмите **«Для УТ»**. Откроется окно с отдельным JSON для каждой новости (в обычном выпуске — четыре блока) и адресом API. Для каждого блока создайте в Postman отдельный запрос:
+
+- метод: `POST`
+- URL: `https://ut-postgrest.efko.ru/lplvhonfgjijtko/technology_tools`
+- тело: **Body → raw → JSON** — вставьте скопированный блок
+
+Каждый блок сформирован по схеме УТ:
+
+```json
+{
+  "name": "",
+  "short_description": "",
+  "type": "",
+  "applicability": "",
+  "maturity": "",
+  "implementation": "",
+  "transformation": "",
+  "link": "",
+  "application_scope": "",
+  "similar_services": "",
+  "description": "",
+  "image_url": "",
+  "user_full_name": "",
+  "committee_date": ""
+}
+```
+
+Значения новости берутся из карточки. `user_full_name` подставляется из `DIGEST_AUTHOR_NAME` на сервере, а `committee_date` рассчитывается как поле «День предоставления» плюс один день (формат `YYYY-MM-DD`).
+
 ## Промпт для подготовки JSON
 
 ```text

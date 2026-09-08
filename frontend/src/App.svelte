@@ -1,9 +1,11 @@
 <script lang="ts">
   import ClipboardPasteIcon from "@lucide/svelte/icons/clipboard-paste";
+  import CopyIcon from "@lucide/svelte/icons/copy";
   import FileDownIcon from "@lucide/svelte/icons/file-down";
   import PlusIcon from "@lucide/svelte/icons/plus";
   import SparklesIcon from "@lucide/svelte/icons/sparkles";
   import { ModeWatcher } from "mode-watcher";
+  import { onMount } from "svelte";
   import { toast } from "svelte-sonner";
   import * as Accordion from "$lib/components/ui/accordion/index.js";
   import * as Alert from "$lib/components/ui/alert/index.js";
@@ -18,6 +20,7 @@
   import { Textarea } from "$lib/components/ui/textarea/index.js";
   import NewsCard from "$lib/components/NewsCard.svelte";
   import {
+    addDaysIso,
     digestFilename,
     periodFromProvision,
     provisionDateFromUnknown,
@@ -33,15 +36,53 @@
   } from "$lib/types";
 
   const initialItems = [emptyNews(), emptyNews(), emptyNews(), emptyNews()];
+  const utEndpoint = "https://ut-postgrest.efko.ru/lplvhonfgjijtko/technology_tools";
   let items = $state<NewsItem[]>(initialItems);
   let openItems = $state(initialItems.map((item) => item.id));
   let provisionDate = $state(todayIso());
   let jsonOpen = $state(false);
   let jsonText = $state("");
+  let utOpen = $state(false);
+  let utUserFullName = $state("");
   let generating = $state(false);
   let error = $state("");
 
   let period = $derived(periodFromProvision(provisionDate));
+  let utRequests = $derived(
+    items.map((item) =>
+      JSON.stringify(
+        {
+          name: item.name,
+          short_description: item.short_description,
+          type: item.type,
+          applicability: item.applicability,
+          maturity: item.maturity,
+          implementation: item.implementation,
+          transformation: item.transformation,
+          link: item.link,
+          application_scope: item.application_scope,
+          similar_services: item.similar_services,
+          description: item.description,
+          image_url: item.image_url,
+          user_full_name: utUserFullName,
+          committee_date: addDaysIso(provisionDate, 1),
+        },
+        null,
+        2,
+      ),
+    ),
+  );
+
+  onMount(async () => {
+    try {
+      const response = await fetch("/api/ut-config");
+      if (!response.ok) return;
+      const payload = (await response.json()) as { user_full_name?: unknown };
+      utUserFullName = typeof payload.user_full_name === "string" ? payload.user_full_name : "";
+    } catch {
+      // Запросы для УТ останутся доступны, если API временно недоступен.
+    }
+  });
 
   function fillSample() {
     items = sampleItems.map((item) => ({ ...item, id: crypto.randomUUID() }));
@@ -127,6 +168,24 @@
     }
   }
 
+  async function copyUtRequest(index: number) {
+    try {
+      await navigator.clipboard.writeText(utRequests[index]);
+      toast.success(`JSON новости ${index + 1} скопирован`);
+    } catch {
+      toast.error("Не удалось скопировать JSON. Скопируйте текст вручную.");
+    }
+  }
+
+  async function copyUtEndpoint() {
+    try {
+      await navigator.clipboard.writeText(utEndpoint);
+      toast.success("Адрес УТ скопирован");
+    } catch {
+      toast.error("Не удалось скопировать адрес. Скопируйте его вручную.");
+    }
+  }
+
   async function generate() {
     error = "";
     generating = true;
@@ -199,6 +258,10 @@
         <Button variant="outline" onclick={() => (jsonOpen = true)}>
           <ClipboardPasteIcon />
           JSON
+        </Button>
+        <Button variant="outline" onclick={() => (utOpen = true)}>
+          <CopyIcon />
+          Для УТ
         </Button>
         <Button onclick={generate} disabled={generating}>
           <FileDownIcon />
@@ -293,6 +356,54 @@
     <Dialog.Footer>
       <Button variant="outline" onclick={() => (jsonOpen = false)}>Отмена</Button>
       <Button onclick={applyJson}>Загрузить</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={utOpen}>
+  <Dialog.Content class="sm:max-w-4xl">
+    <Dialog.Header>
+      <Dialog.Title>JSON-запросы для УТ</Dialog.Title>
+      <Dialog.Description>
+        Для каждого блока создайте отдельный запрос <code>POST</code> в Postman и вставьте JSON в
+        Body → raw → JSON. <code>user_full_name</code> берётся из <code>DIGEST_AUTHOR_NAME</code>, а
+        <code>committee_date</code> — из дня предоставления выпуска плюс один день.
+      </Dialog.Description>
+    </Dialog.Header>
+
+    <div class="grid gap-4">
+      <div class="grid gap-2 rounded-lg border bg-muted/30 p-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <Label for="ut-endpoint">Endpoint</Label>
+          <Button variant="outline" size="sm" onclick={copyUtEndpoint}>
+            <CopyIcon />
+            Скопировать URL
+          </Button>
+        </div>
+        <Input id="ut-endpoint" value={utEndpoint} readonly class="font-mono text-xs" />
+      </div>
+      {#each utRequests as request, index}
+        <div class="grid gap-2">
+          <div class="flex items-center justify-between gap-3">
+            <Label for={`ut-request-${index}`}>Новость {index + 1}</Label>
+            <Button variant="outline" size="sm" onclick={() => copyUtRequest(index)}>
+              <CopyIcon />
+              Скопировать
+            </Button>
+          </div>
+          <Textarea
+            id={`ut-request-${index}`}
+            value={request}
+            readonly
+            rows={14}
+            class="field-sizing-fixed max-h-72 overflow-y-auto font-mono text-xs"
+          />
+        </div>
+      {/each}
+    </div>
+
+    <Dialog.Footer>
+      <Button onclick={() => (utOpen = false)}>Готово</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
