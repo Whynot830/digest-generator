@@ -24,7 +24,7 @@ export function periodFromProvision(provisionDate: string) {
 
 export function digestFilename(provisionDate: string) {
   const date = addDaysIso(provisionDate.trim(), 1);
-  return `Дайджест_IТ_Анализ_инструментов_и_технологий_${date}_Нурулла_Амин.docx`;
+  return `Дайджест_IТ_Анализ_инструментов_и_технологий_${date}.docx`;
 }
 
 export function formatRuDate(iso: string) {

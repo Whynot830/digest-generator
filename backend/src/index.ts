@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import './env'
 import cors from 'cors'
 import express from 'express'
 import multer from 'multer'

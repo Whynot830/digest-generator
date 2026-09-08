@@ -7,7 +7,13 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
-  import { averageScore, NEWS_TYPES, parseNewsType, type NewsItem } from "$lib/types";
+  import {
+    averageScore,
+    NEWS_TYPES,
+    normalizeScore,
+    parseNewsType,
+    type NewsItem,
+  } from "$lib/types";
   import { toast } from "svelte-sonner";
 
   type Props = {
@@ -21,6 +27,13 @@
   let uploading = $state(false);
   let total = $derived(averageScore(item));
   let preview = $derived(item.image_id ? `/api/images/${item.image_id}` : item.image_url);
+
+  function clampScores() {
+    item.applicability = normalizeScore(item.applicability);
+    item.maturity = normalizeScore(item.maturity);
+    item.implementation = normalizeScore(item.implementation);
+    item.transformation = normalizeScore(item.transformation);
+  }
 
   async function uploadFile(file: File | undefined) {
     if (!file) return;
@@ -93,10 +106,11 @@
           <Input
             id="app-{item.id}"
             type="number"
-            min="1"
+            min="3"
             max="5"
             step="1"
             bind:value={item.applicability}
+            onblur={clampScores}
           />
         </div>
         <div class="grid gap-2">
@@ -104,10 +118,11 @@
           <Input
             id="mat-{item.id}"
             type="number"
-            min="1"
+            min="3"
             max="5"
             step="1"
             bind:value={item.maturity}
+            onblur={clampScores}
           />
         </div>
         <div class="grid gap-2">
@@ -115,10 +130,11 @@
           <Input
             id="impl-{item.id}"
             type="number"
-            min="1"
+            min="3"
             max="5"
             step="1"
             bind:value={item.implementation}
+            onblur={clampScores}
           />
         </div>
         <div class="grid gap-2">
@@ -126,10 +142,11 @@
           <Input
             id="tr-{item.id}"
             type="number"
-            min="1"
+            min="3"
             max="5"
             step="1"
             bind:value={item.transformation}
+            onblur={clampScores}
           />
         </div>
       </div>

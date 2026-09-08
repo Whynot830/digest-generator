@@ -48,7 +48,7 @@ const hairline = {
 function parseScore(value: string | number) {
   const n =
     typeof value === "number" ? value : Number(String(value).replace(",", "."));
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? Math.max(3, n) : 3;
 }
 
 export function averageScore(item: NewsItemInput) {

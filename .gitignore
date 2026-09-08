@@ -12,6 +12,8 @@ backend/data
 # Env
 .env
 .env.*
+!.env.example
+!**/.env.example
 
 # Logs
 logs

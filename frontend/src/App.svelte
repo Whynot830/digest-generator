@@ -23,7 +23,14 @@
     provisionDateFromUnknown,
     todayIso,
   } from "$lib/dates";
-  import { emptyNews, importedText, parseNewsType, sampleItems, type NewsItem } from "$lib/types";
+  import {
+    emptyNews,
+    importedText,
+    normalizeScore,
+    parseNewsType,
+    sampleItems,
+    type NewsItem,
+  } from "$lib/types";
 
   const initialItems = [emptyNews(), emptyNews(), emptyNews(), emptyNews()];
   let items = $state<NewsItem[]>(initialItems);
@@ -69,6 +76,21 @@
     throw new Error("Ожидается массив новостей или объект с полем items");
   }
 
+  function filenameFromContentDisposition(header: string | null) {
+    if (!header) return "";
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header)?.[1];
+    if (encoded) {
+      try {
+        return decodeURIComponent(encoded);
+      } catch {
+        return encoded;
+      }
+    }
+    return (
+      /filename="([^"]+)"/i.exec(header)?.[1] ?? /filename=([^;]+)/i.exec(header)?.[1]?.trim() ?? ""
+    );
+  }
+
   function applyJson() {
     try {
       const parsed = parseImported(jsonText);
@@ -77,10 +99,10 @@
           name: importedText(item.name),
           short_description: importedText(item.short_description),
           type: parseNewsType(item.type),
-          applicability: String(item.applicability ?? "3"),
-          maturity: String(item.maturity ?? "3"),
-          implementation: String(item.implementation ?? "3"),
-          transformation: String(item.transformation ?? "3"),
+          applicability: normalizeScore(item.applicability),
+          maturity: normalizeScore(item.maturity),
+          implementation: normalizeScore(item.implementation),
+          transformation: normalizeScore(item.transformation),
           link: importedText(item.link),
           application_scope: importedText(item.application_scope),
           similar_services: importedText(item.similar_services),
@@ -132,7 +154,9 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = digestFilename(provisionDate);
+      link.download =
+        filenameFromContentDisposition(response.headers.get("content-disposition")) ||
+        digestFilename(provisionDate);
       link.click();
       URL.revokeObjectURL(url);
       toast.success("DOCX скачан");
