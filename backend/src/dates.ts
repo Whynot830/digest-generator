@@ -1,5 +1,19 @@
 import type { DigestMeta, NewsItemInput } from './types'
 
+const DEFAULT_DIGEST_AUTHOR_NAME = 'Автор'
+
+function filenameSafe(value: string) {
+  return value
+    .trim()
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_') || DEFAULT_DIGEST_AUTHOR_NAME
+}
+
+export function digestAuthorName() {
+  return process.env.DIGEST_AUTHOR_NAME?.trim() || DEFAULT_DIGEST_AUTHOR_NAME
+}
+
 export function todayIso() {
   const date = new Date()
   const year = date.getFullYear()
@@ -24,9 +38,9 @@ export function periodFromProvision(provisionDate: string) {
   }
 }
 
-export function digestFilename(provisionDate: string) {
+export function digestFilename(provisionDate: string, authorName = digestAuthorName()) {
   const date = addDaysIso(provisionDate.trim(), 1)
-  return `Дайджест_IТ_Анализ_инструментов_и_технологий_${date}_Нурулла_Амин.docx`
+  return `Дайджест_IТ_Анализ_инструментов_и_технологий_${date}_${filenameSafe(authorName)}.docx`
 }
 
 export function formatRuDate(iso: string) {

@@ -41,6 +41,11 @@ export type DigestMeta = {
   provisionDate: string;
 };
 
+export function normalizeScore(value: unknown) {
+  const n = Number(String(value ?? "3").replace(",", "."));
+  return String(Number.isFinite(n) ? Math.max(3, n) : 3);
+}
+
 export function emptyNews(partial: Partial<NewsItem> = {}): NewsItem {
   return {
     id: crypto.randomUUID(),
@@ -63,10 +68,10 @@ export function emptyNews(partial: Partial<NewsItem> = {}): NewsItem {
 
 export function averageScore(item: NewsItem) {
   const scores = [
-    Number(item.applicability),
-    Number(item.maturity),
-    Number(item.implementation),
-    Number(item.transformation),
+    Number(normalizeScore(item.applicability)),
+    Number(normalizeScore(item.maturity)),
+    Number(normalizeScore(item.implementation)),
+    Number(normalizeScore(item.transformation)),
   ].filter((n) => Number.isFinite(n));
   if (!scores.length) return 0;
   const avg = scores.reduce((sum, n) => sum + n, 0) / scores.length;
@@ -80,7 +85,7 @@ export const sampleItems: NewsItem[] = [
       "ADR (Agentic AI Detection and Response) — enterprise-система Uber для обнаружения, наблюдения и анализа угроз, связанных с AI-агентами. Она охватывает как developer-инструменты вроде Cursor, Claude Code и Codex, так и внутренние или клиентские автономные агенты. Ключевая идея — перенести подход Detection & Response из классической endpoint/cloud security в среду agentic AI, где риск создают не только приложения, но и цепочки действий самого агента.",
     type: "Инструменты",
     applicability: "4",
-    maturity: "2",
+    maturity: "3",
     implementation: "3",
     transformation: "4",
     link: "https://github.com/uber/ADR",
