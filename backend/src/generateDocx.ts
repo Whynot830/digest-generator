@@ -27,6 +27,7 @@ import {
 import { imageSize } from "image-size";
 import type { ResolvedImage } from "./images";
 import { formatRuDate, resolveCoverDates } from "./dates";
+import { parseScore } from "./scores";
 import type { DigestMeta, NewsItemInput } from "./types";
 
 const FONT = "MagistralC";
@@ -44,12 +45,6 @@ const hairline = {
   size: 4,
   color: TABLE_FILL,
 };
-
-function parseScore(value: string | number) {
-  const n =
-    typeof value === "number" ? value : Number(String(value).replace(",", "."));
-  return Number.isFinite(n) ? Math.max(3, n) : 3;
-}
 
 export function averageScore(item: NewsItemInput) {
   const scores = [

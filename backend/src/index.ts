@@ -5,6 +5,7 @@ import multer from 'multer'
 import { generateDigestDocx } from './generateDocx'
 import { resolveItemImage } from './images'
 import { digestAuthorName, digestFilename, resolveCoverDates } from './dates'
+import { assertPayloadScores } from './scores'
 import { createImageStore } from './store'
 import type { GeneratePayload, NewsItemInput } from './types'
 
@@ -81,6 +82,7 @@ app.post('/api/generate', async (req, res) => {
       res.status(400).json({ error: 'Нужна хотя бы одна новость' })
       return
     }
+    assertPayloadScores(payload.items)
     const images = await Promise.all(payload.items.map((item) => resolveItemImage(item, store)))
     const buffer = await generateDigestDocx(payload, images)
     const { provision } = resolveCoverDates(payload.items, payload)
